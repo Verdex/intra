@@ -1,14 +1,44 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+
+mod data;
+mod parsing;
+
+use proc_macro::*;
+
+use crate::data::*;
+use crate::parsing::*;
+
+fn gen_compile_error(error : Error) -> TokenStream {
+    let mut code = format!("compile_error!(\"{}\");", error.message())
+        .parse::<TokenStream>()
+        .unwrap()
+        .into_iter()
+        .collect::<Vec<_>>();
+
+    let span = error.span();
+    for c in &mut code {
+        c.set_span(span);
+    }
+    code.into_iter().collect()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[proc_macro]
+pub fn atom( input : TokenStream ) -> TokenStream {
+    let input = input.into_iter().collect::<Vec<_>>();
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    let first = &input[0];
+    let second = &input[1];
+    
+
+
+    let z = parse_colon(Input::new(&input[2..], second.span()));
+
+    match z {
+        Err(s) => { 
+            gen_compile_error(s)
+        },
+        _ => { 
+            "".parse().unwrap()
+        },
     }
 }
+
