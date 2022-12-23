@@ -1,6 +1,7 @@
 
 use proc_macro::*;
 
+#[derive(Clone)]
 pub struct Input<'a>(&'a [TokenTree], Span);
 
 impl<'a> Input<'a> {
@@ -33,4 +34,13 @@ impl Error {
     } 
 }
 
-pub struct IntraIdent<'a>(pub Vec<&'a TokenTree>);
+pub struct IntraIdent<'a>(Vec<&'a TokenTree>);
+
+impl<'a> IntraIdent<'a> {
+    pub fn new(input : Vec<&'a TokenTree>) -> Self {
+        IntraIdent(input)
+    }
+    pub fn trees(self) -> Vec<&'a TokenTree> {
+        self.0
+    }
+}
