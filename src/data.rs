@@ -16,6 +16,7 @@ impl<'a> Input<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct Error(Span, Vec<String>);
 
 impl Error {
@@ -50,4 +51,22 @@ pub struct Execute(Vec<TokenTree>);
 impl Execute {
     pub fn new(input : Vec<TokenTree>) -> Self { Execute(input) }
     pub fn trees(self) -> Vec<TokenTree> { self.0 }
+}
+
+pub struct Pattern(Vec<TokenTree>);
+
+impl Pattern {
+    pub fn new(input : Vec<TokenTree>) -> Self { Pattern(input) }
+    pub fn trees(self) -> Vec<TokenTree> { self.0 }
+}
+
+pub enum AtomElement<'a> {
+    Execute(Execute),
+    Pattern { pre_map : Option<IntraIdent<'a>>, pattern : Pattern, next : Vec<IntraIdent<'a>> },
+}
+
+pub struct Atom<'a> {
+    pub init : IntraIdent<'a>,
+    pub seq : Vec<AtomElement<'a>>,
+    pub resolve : Execute,
 }
