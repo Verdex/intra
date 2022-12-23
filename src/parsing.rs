@@ -24,7 +24,7 @@ macro_rules! seq {
                     Err(e) => { break Err(e.augment(format!("failure while trying to parse {}", stringify!($x)))); }
                 };
             )+
-            Ok(($b, input))
+            break Ok(($b, input));
         }
     };
 }
