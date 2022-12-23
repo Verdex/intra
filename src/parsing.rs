@@ -11,6 +11,24 @@ macro_rules! Parser {
     };
 }
 
+macro_rules! seq {
+    ($input:ident => $($x:ident <= $p:expr);+ => $b:block) => {
+        loop {
+            let mut input = $input;
+            $(
+                let $x = match $p(input.clone()) {
+                    Ok((v, i)) => {
+                        input = i;
+                        v
+                    },
+                    Err(e) => { break Err(e); }
+                };
+            )+
+            Ok(($b, input))
+        }
+    };
+}
+
 pub fn parse_colon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     match input.input() { 
         [t @ TokenTree::Punct(p), rest @ ..] if p.as_char() == ':' => Ok((t, Input::new(rest, p.span()))),
