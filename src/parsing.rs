@@ -76,6 +76,22 @@ fn parse_app<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     }
 }
 
+fn parse_semicolon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
+    match input.input() { 
+        [t @ TokenTree::Punct(p), rest @ ..] if p.as_char() == ';' => Ok((t, Input::new(rest, p.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected ';'".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
+fn parse_comma<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
+    match input.input() { 
+        [t @ TokenTree::Punct(p), rest @ ..] if p.as_char() == ',' => Ok((t, Input::new(rest, p.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected ','".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
 fn parse_colon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     match input.input() { 
         [t @ TokenTree::Punct(p), rest @ ..] if p.as_char() == ':' => Ok((t, Input::new(rest, p.span()))),
