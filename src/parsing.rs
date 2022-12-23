@@ -81,6 +81,15 @@ fn zero_or_more<'a, T>( parser : Parser!('a, T) ) -> Parser!('a, Vec<T>) {
     }
 }
 
+pub fn parse_execute<'a>( input : Input<'a> ) -> ParseResult<'a, Execute> {
+    match input.input() {
+        [TokenTree::Group(g), rest @ ..] if g.delimiter() == Delimiter::Brace 
+            => Ok((Execute::new(g.stream().into_iter().collect()), Input::new(rest, g.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected '{ <Group> }'".to_owned())),
+        [] => input.end_of_stream(),
+    }
+}
+
 pub fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
     let mcc = maybe(parse_colon_colon);
     let tail = zero_or_more(parse_colon_colon_sym);

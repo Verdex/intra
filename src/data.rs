@@ -44,3 +44,10 @@ impl<'a> IntraIdent<'a> {
         self.0
     }
 }
+
+pub struct Execute(Vec<TokenTree>);
+
+impl Execute {
+    pub fn new(input : Vec<TokenTree>) -> Self { Execute(input) }
+    pub fn trees(self) -> Vec<TokenTree> { self.0 }
+}
