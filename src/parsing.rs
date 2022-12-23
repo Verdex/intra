@@ -38,8 +38,8 @@ pub fn parse_colon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
 }
 
 pub fn parse_colon_colon<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<&'a TokenTree>> {
-    let (colon, input) = parse_colon(input).map_err(|err| err.agument("'::' is missing first ':'".to_owned()))?;
-    parse_colon(input).map_err(|err| err.agument("'::' is missing second ':'".to_owned()))
+    let (colon, input) = parse_colon(input).map_err(|err| err.augment("'::' is missing first ':'".to_owned()))?;
+    parse_colon(input).map_err(|err| err.augment("'::' is missing second ':'".to_owned()))
                       .map(|(colon_2, input)| (vec![colon, colon_2], input))
 }
 

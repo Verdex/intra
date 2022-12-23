@@ -22,7 +22,7 @@ impl Error {
     pub fn new(span : Span, s : String) -> Self {
         Error(span, vec![s])
     }
-    pub fn agument(mut self, s : String) -> Self {
+    pub fn augment(mut self, s : String) -> Self {
         self.1.push(s);
         self
     }
