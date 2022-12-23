@@ -29,6 +29,36 @@ macro_rules! seq {
     };
 }
 
+fn parse_gt<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
+    match input.input() {
+        [x @ TokenTree::Punct(p), rest @ ..] if p.as_char() == '>' => Ok((x, Input::new(rest, p.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected '>'".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
+fn parse_eq<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
+    match input.input() {
+        [x @ TokenTree::Punct(p), rest @ ..] if p.as_char() == '=' => Ok((x, Input::new(rest, p.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected '='".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
+fn parse_arrow<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<&'a TokenTree>> {
+    seq!(input => eq <= parse_eq, gt <= parse_gt => {
+        vec![ eq, gt ]
+    })
+}
+
+fn parse_app<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
+    match input.input() {
+        [x @ TokenTree::Punct(p), rest @ ..] if p.as_char() == '$' => Ok((x, Input::new(rest, p.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected '$'".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
 fn parse_colon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     match input.input() { 
         [t @ TokenTree::Punct(p), rest @ ..] if p.as_char() == ':' => Ok((t, Input::new(rest, p.span()))),
@@ -80,6 +110,7 @@ fn zero_or_more<'a, T>( parser : Parser!('a, T) ) -> Parser!('a, Vec<T>) {
         Ok((ret, input))
     }
 }
+
 
 pub fn parse_execute<'a>( input : Input<'a> ) -> ParseResult<'a, Execute> {
     match input.input() {
