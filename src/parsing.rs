@@ -82,9 +82,18 @@ fn zero_or_more<'a, T>( parser : Parser!('a, T) ) -> Parser!('a, Vec<T>) {
 }
 
 pub fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
-//    let mut identifier = vec![];
-    let z = maybe( parse_sym );
+    let mcc = maybe(parse_colon_colon);
+    let tail = zero_or_more(parse_colon_colon_sym);
 
-    z(input);
-    todo!()
+    seq!(input => maybe_cc <= mcc, sym <= parse_sym, tails <= tail => {
+        let mut tails = tails.into_iter().flatten().collect::<Vec<_>>();
+        tails.insert(0, sym);
+        match maybe_cc {
+            Some(mut cc) => { 
+                cc.append(&mut tails);
+                IntraIdent::new(cc)
+            },
+            None => { IntraIdent::new(tails) },
+        }
+    })
 }
