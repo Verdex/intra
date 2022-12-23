@@ -42,9 +42,18 @@ fn maybe<'a, T>( parser : Parser!('a, T) ) -> Parser!('a, Option<T>) {
     }
 }
 
-/*fn zero_or_more<'a, T>( parser : Parser!('a, T) ) -> Parser!('a, Vec<T>) {
-
-}*/
+fn zero_or_more<'a, T>( parser : Parser!('a, T) ) -> Parser!('a, Vec<T>) {
+    move |mut input : Input<'a>| {
+        let mut ret = vec![];
+        loop {
+            match parser(input.clone()) {
+                Ok((v, i)) => { input = i; ret.push(v); },
+                Err(_) => { break; },
+            }
+        }
+        Ok((ret, input))
+    }
+}
 
 pub fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
 //    let mut identifier = vec![];
