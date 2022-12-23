@@ -29,7 +29,7 @@ macro_rules! seq {
     };
 }
 
-pub fn parse_colon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
+fn parse_colon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     match input.input() { 
         [t @ TokenTree::Punct(p), rest @ ..] if p.as_char() == ':' => Ok((t, Input::new(rest, p.span()))),
         [x, ..] => Err(Error::new(x.span(), "expected ':'".to_owned())),
@@ -37,13 +37,13 @@ pub fn parse_colon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     }
 }
 
-pub fn parse_colon_colon<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<&'a TokenTree>> {
+fn parse_colon_colon<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<&'a TokenTree>> {
     let (colon, input) = parse_colon(input).map_err(|err| err.augment("'::' is missing first ':'".to_owned()))?;
     parse_colon(input).map_err(|err| err.augment("'::' is missing second ':'".to_owned()))
                       .map(|(colon_2, input)| (vec![colon, colon_2], input))
 }
 
-pub fn parse_sym<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
+fn parse_sym<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     match input.input() {
         [t @ TokenTree::Ident(_), rest @ ..] => Ok((t, Input::new(rest, t.span()))),
         [x, ..] => Err(Error::new(x.span(), "expected '<ident>'".to_owned())),

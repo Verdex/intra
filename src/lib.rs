@@ -30,14 +30,14 @@ pub fn atom( input : TokenStream ) -> TokenStream {
     
 
 
-    let z = parse_colon_colon(Input::new(&input[2..], second.span()));
+    let z = parse_ident(Input::new(&input[2..], second.span()));
 
     match z {
         Err(s) => { 
             gen_compile_error(s)
         },
-        _ => { 
-            "".parse().unwrap()
+        Ok((x, _)) => { 
+            x.trees().into_iter().map(|tt| tt.clone()).collect()
         },
     }
 }
