@@ -51,6 +51,14 @@ pub fn parse_sym<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     }
 }
 
+fn parse_colon_colon_sym<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<&'a TokenTree>> {
+    seq!(input => cc <= parse_colon_colon, sym <= parse_sym => { 
+        let mut cc = cc;
+        cc.push(sym);
+        cc
+    })
+}
+
 fn maybe<'a, T>( parser : Parser!('a, T) ) -> Parser!('a, Option<T>) {
     move |input : Input<'a>| {
         match parser(input.clone()) {
