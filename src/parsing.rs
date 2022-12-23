@@ -144,8 +144,39 @@ fn zero_or_more<'a, T>( parser : Parser!('a, T) ) -> Parser!('a, Vec<T>) {
     }
 }
 
+fn map<'a, T, S, F : Fn(T) -> S>( parser : Parser!('a, T), f : F ) -> Parser!('a, S) {
+    move |input : Input<'a>| {
+        match parser(input) {
+            Ok((v, i)) => Ok((f(v), i)),
+            Err(e) => Err(e),
+        }
+    }
+}
 
-pub fn parse_execute<'a>( input : Input<'a> ) -> ParseResult<'a, Execute> {
+fn parse_pre_map<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
+    seq!( input => ident <= parse_ident, app <= parse_app => {
+        ident
+    })
+}
+
+fn parse_pattern_bracket<'a>( input : Input<'a> ) -> ParseResult<'a, Pattern> {
+    match input.input() {
+        [TokenTree::Group(g), rest @ ..] if g.delimiter() == Delimiter::Bracket
+            => Ok((Pattern::new(g.stream().into_iter().collect()), Input::new(rest, g.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected '{ <Group> }'".to_owned())),
+        [] => input.end_of_stream(),
+    }
+}
+
+fn parse_pattern_element<'a>( input : Input<'a> ) -> ParseResult<'a, (Option<IntraIdent>, Pattern, Vec<IntraIdent<'a>>)> {
+    let maybe_ident = maybe(parse_ident);
+
+    seq!( input => m_ident <= maybe_ident, pattern <= parse_pattern_bracket, idents <= parse_ident_list => {
+        (m_ident, pattern, idents)
+    })
+}
+
+fn parse_execute<'a>( input : Input<'a> ) -> ParseResult<'a, Execute> {
     match input.input() {
         [TokenTree::Group(g), rest @ ..] if g.delimiter() == Delimiter::Brace 
             => Ok((Execute::new(g.stream().into_iter().collect()), Input::new(rest, g.span()))),
@@ -154,7 +185,26 @@ pub fn parse_execute<'a>( input : Input<'a> ) -> ParseResult<'a, Execute> {
     }
 }
 
-pub fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
+fn parse_ident_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<IntraIdent<'a>>> {
+    fn parse_ident_comma<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
+        seq!( input => ident <= parse_ident, comma <= parse_comma => {
+            ident
+        })
+    }
+
+    let ident_commas = zero_or_more(parse_ident_comma);
+    let maybe_ident = maybe(parse_ident);
+
+    seq!( input => idents <= ident_commas, m_ident <= maybe_ident => {
+        let mut idents = idents;
+        match m_ident {
+            Some(ident) => { idents.push(ident); idents },
+            None => idents,
+        }
+    })
+}
+
+fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
     let mcc = maybe(parse_colon_colon);
     let tail = zero_or_more(parse_colon_colon_sym);
 
@@ -169,4 +219,33 @@ pub fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
             None => { IntraIdent::new(tails) },
         }
     })
+}
+
+fn parse_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<AtomElement<'a>>> {
+    fn parse_execute_or_pattern<'a>( input : Input<'a> ) -> ParseResult<'a, AtomElement<'a>> {
+        let pattern = map(parse_pattern_element, |(pre_map, pattern, next)| AtomElement::Pattern { pre_map, pattern, next });
+        let execute = map(parse_execute, |x| AtomElement::Execute(x));
+        alt!( input => pattern | execute )
+    } 
+    fn parse_execute_or_pattern_semicolon<'a>( input : Input<'a> ) -> ParseResult<'a, AtomElement<'a>> {
+        seq!( input => execute_or_pattern <= parse_execute_or_pattern, semicolon <= parse_semicolon => {
+            execute_or_pattern
+        })
+    }
+    let list = zero_or_more(parse_execute_or_pattern_semicolon);
+    seq!( input => xs <= list, x <= parse_execute_or_pattern => {
+        let mut xs = xs;
+        xs.push(x);
+        xs
+    })
+}
+
+pub fn parse_atom<'a>( input : Input<'a> ) -> ParseResult<'a, Atom<'a>> {
+    seq!( input => init <= parse_ident
+                 , arrow_1 <= parse_arrow
+                 , seq <= parse_execute_or_pattern_list 
+                 , arrow_2 <= parse_arrow
+                 , resolve <= parse_execute
+                 => 
+                 { Atom { init, seq, resolve } })
 }
