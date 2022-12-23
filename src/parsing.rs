@@ -11,6 +11,11 @@ pub fn parse_colon<'a>( input : Input<'a> ) -> Result<((), Input<'a>), Error> {
     }
 }
 
+pub fn parse_colon_colon<'a>( input : Input<'a> ) -> Result<((), Input<'a>), Error> {
+    let (_, input) = parse_colon(input).map_err(|err| err.agument("'::' is missing first ':'".to_owned()))?;
+    parse_colon(input).map_err(|err| err.agument("'::' is missing second ':'".to_owned()))
+}
+
 pub fn parse_ident<'a>( input : &'a [TokenTree] ) -> Result<(IntraIdent<'a>, &'a [TokenTree]), Span> {
 
     Ok(( IntraIdent(vec![]), &input[1..]))

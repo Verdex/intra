@@ -30,7 +30,7 @@ pub fn atom( input : TokenStream ) -> TokenStream {
     
 
 
-    let z = parse_colon(Input::new(&input[2..], second.span()));
+    let z = parse_colon_colon(Input::new(&input[2..], second.span()));
 
     match z {
         Err(s) => { 
