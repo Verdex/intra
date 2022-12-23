@@ -29,6 +29,23 @@ macro_rules! seq {
     };
 }
 
+macro_rules! alt {
+    ($input:ident => $($p:ident)|+) => {
+        loop {
+            let mut error : Option<Error> = None;
+            $(
+                match $p($input.clone()) {
+                    Ok((v, i)) => {
+                        break Ok((v, i));
+                    },
+                    Err(e) => { error = Some(e); },
+                };
+            )+
+            break Err(error.unwrap().augment("alt failed all parses".to_owned()));
+        }
+    };
+}
+
 fn parse_gt<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     match input.input() {
         [x @ TokenTree::Punct(p), rest @ ..] if p.as_char() == '>' => Ok((x, Input::new(rest, p.span()))),
