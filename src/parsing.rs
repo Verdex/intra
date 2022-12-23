@@ -12,7 +12,7 @@ macro_rules! Parser {
 }
 
 macro_rules! seq {
-    ($input:ident => $($x:ident <= $p:expr);+ => $b:block) => {
+    ($input:ident => $($x:ident <= $p:expr),+ => $b:block) => {
         loop {
             let mut input = $input;
             $(
