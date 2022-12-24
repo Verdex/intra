@@ -1,11 +1,13 @@
 
 mod data;
 mod parsing;
+mod gen;
 
 use proc_macro::*;
 
 use crate::data::*;
 use crate::parsing::*;
+use crate::gen::*;
 
 fn gen_compile_error(error : Error) -> TokenStream {
     let mut code = format!("compile_error!(\"{}\");", error.message())
@@ -25,20 +27,16 @@ fn gen_compile_error(error : Error) -> TokenStream {
 pub fn atom( input : TokenStream ) -> TokenStream {
     let input = input.into_iter().collect::<Vec<_>>();
 
-    let first = &input[0];
-    let second = &input[1];
-    
+    // TODO is there an empty span or pre-span or something
+    let atom = parse_atom(Input::new(&input, input[0].span()));
 
-
-    let z = parse_ident(Input::new(&input[2..], second.span()));
-
-    match z {
-        Err(s) => { 
-            gen_compile_error(s)
+    match atom {
+        Ok((v, _)) => { // TODO make sure entire input is consumed
+            gen_atom(v)
         },
-        Ok((x, _)) => { 
-            x.trees().into_iter().map(|tt| tt.clone()).collect()
-        },
+        Err(e) => {
+            gen_compile_error(e)
+        }
     }
 }
 
