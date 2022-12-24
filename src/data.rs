@@ -35,13 +35,14 @@ impl Error {
     } 
 }
 
-pub struct IntraIdent<'a>(Vec<&'a TokenTree>);
+#[derive(Clone)]
+pub struct IntraIdent(Vec<TokenTree>);
 
-impl<'a> IntraIdent<'a> {
-    pub fn new(input : Vec<&'a TokenTree>) -> Self {
+impl IntraIdent {
+    pub fn new(input : Vec<TokenTree>) -> Self {
         IntraIdent(input)
     }
-    pub fn trees(self) -> Vec<&'a TokenTree> {
+    pub fn trees(self) -> Vec<TokenTree> {
         self.0
     }
 }
@@ -60,13 +61,13 @@ impl Pattern {
     pub fn trees(self) -> Vec<TokenTree> { self.0 }
 }
 
-pub enum AtomElement<'a> {
+pub enum AtomElement {
     Execute(Execute),
-    Pattern { pre_map : Option<IntraIdent<'a>>, pattern : Pattern, next : Vec<IntraIdent<'a>> },
+    Pattern { pre_map : Option<IntraIdent>, pattern : Pattern, next : Vec<IntraIdent> },
 }
 
-pub struct Atom<'a> {
-    pub init : IntraIdent<'a>,
-    pub seq : Vec<AtomElement<'a>>,
+pub struct Atom {
+    pub init : IntraIdent,
+    pub seq : Vec<AtomElement>,
     pub resolve : Execute,
 }

@@ -158,7 +158,7 @@ fn map<'a, T, S, F : Fn(T) -> S>( parser : Parser!('a, T), f : F ) -> Parser!('a
     }
 }
 
-fn parse_pre_map<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
+fn parse_pre_map<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent> {
     seq!( input => ident <= parse_ident, app <= parse_app => {
         ident
     })
@@ -173,7 +173,7 @@ fn parse_pattern_bracket<'a>( input : Input<'a> ) -> ParseResult<'a, Pattern> {
     }
 }
 
-fn parse_pattern_element<'a>( input : Input<'a> ) -> ParseResult<'a, (Option<IntraIdent>, Pattern, Vec<IntraIdent<'a>>)> {
+fn parse_pattern_element<'a>( input : Input<'a> ) -> ParseResult<'a, (Option<IntraIdent>, Pattern, Vec<IntraIdent>)> {
     let maybe_ident = maybe(parse_pre_map);
 
     seq!( input => m_ident <= maybe_ident, pattern <= parse_pattern_bracket, idents <= parse_ident_list => {
@@ -190,8 +190,8 @@ fn parse_execute<'a>( input : Input<'a> ) -> ParseResult<'a, Execute> {
     }
 }
 
-fn parse_ident_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<IntraIdent<'a>>> {
-    fn parse_ident_comma<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
+fn parse_ident_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<IntraIdent>> {
+    fn parse_ident_comma<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent> {
         seq!( input => ident <= parse_ident, comma <= parse_comma => {
             ident
         })
@@ -209,7 +209,7 @@ fn parse_ident_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<IntraIdent<'
     })
 }
 
-fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
+fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent> {
     let mcc = maybe(parse_colon_colon);
     let tail = zero_or_more(parse_colon_colon_sym);
 
@@ -219,20 +219,20 @@ fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent<'a>> {
         match maybe_cc {
             Some(mut cc) => { 
                 cc.append(&mut tails);
-                IntraIdent::new(cc)
+                IntraIdent::new(cc.into_iter().map(|x| x.clone()).collect())
             },
-            None => { IntraIdent::new(tails) },
+            None => { IntraIdent::new(tails.into_iter().map(|x| x.clone()).collect()) },
         }
     })
 }
 
-fn parse_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<AtomElement<'a>>> {
-    fn parse_execute_or_pattern<'a>( input : Input<'a> ) -> ParseResult<'a, AtomElement<'a>> {
+fn parse_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<AtomElement>> {
+    fn parse_execute_or_pattern<'a>( input : Input<'a> ) -> ParseResult<'a, AtomElement> {
         let pattern = map(parse_pattern_element, |(pre_map, pattern, next)| AtomElement::Pattern { pre_map, pattern, next });
         let execute = map(parse_execute, |x| AtomElement::Execute(x));
         alt!( input => pattern | execute )
     } 
-    fn parse_execute_or_pattern_semicolon<'a>( input : Input<'a> ) -> ParseResult<'a, AtomElement<'a>> {
+    fn parse_execute_or_pattern_semicolon<'a>( input : Input<'a> ) -> ParseResult<'a, AtomElement> {
         seq!( input => execute_or_pattern <= parse_execute_or_pattern, semicolon <= parse_semicolon => {
             execute_or_pattern
         })
@@ -245,7 +245,7 @@ fn parse_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec
     })
 }
 
-pub fn parse_atom<'a>( input : Input<'a> ) -> ParseResult<'a, Atom<'a>> {
+pub fn parse_atom<'a>( input : Input<'a> ) -> ParseResult<'a, Atom> {
     seq!( input => init <= parse_ident
                  , arrow_1 <= parse_arrow
                  , seq <= parse_execute_or_pattern_list 
