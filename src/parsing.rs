@@ -31,6 +31,7 @@ macro_rules! seq {
 
 macro_rules! alt {
     ($input:ident => $($p:ident)|+) => {
+        #[allow(unused_assignments)]
         loop {
             let mut error : Option<Error> = None;
             let mut idents = vec![];
@@ -159,7 +160,7 @@ fn map<'a, T, S, F : Fn(T) -> S>( parser : Parser!('a, T), f : F ) -> Parser!('a
 }
 
 fn parse_pre_map<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent> {
-    seq!( input => ident <= parse_ident, app <= parse_app => {
+    seq!( input => ident <= parse_ident, _app <= parse_app => {
         ident
     })
 }
@@ -192,7 +193,7 @@ fn parse_execute<'a>( input : Input<'a> ) -> ParseResult<'a, Execute> {
 
 fn parse_ident_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<IntraIdent>> {
     fn parse_ident_comma<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent> {
-        seq!( input => ident <= parse_ident, comma <= parse_comma => {
+        seq!( input => ident <= parse_ident, _comma <= parse_comma => {
             ident
         })
     }
@@ -233,7 +234,7 @@ fn parse_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec
         alt!( input => pattern | execute )
     } 
     fn parse_execute_or_pattern_semicolon<'a>( input : Input<'a> ) -> ParseResult<'a, AtomElement> {
-        seq!( input => execute_or_pattern <= parse_execute_or_pattern, semicolon <= parse_semicolon => {
+        seq!( input => execute_or_pattern <= parse_execute_or_pattern, _semicolon <= parse_semicolon => {
             execute_or_pattern
         })
     }
@@ -247,9 +248,9 @@ fn parse_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec
 
 pub fn parse_atom<'a>( input : Input<'a> ) -> ParseResult<'a, Atom> {
     seq!( input => init <= parse_ident
-                 , arrow_1 <= parse_arrow
+                 , _arrow_1 <= parse_arrow
                  , seq <= parse_execute_or_pattern_list 
-                 , arrow_2 <= parse_arrow
+                 , _arrow_2 <= parse_arrow
                  , resolve <= parse_execute
                  => 
                  { Atom { init, seq, resolve } })
