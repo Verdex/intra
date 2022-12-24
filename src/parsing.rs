@@ -33,15 +33,20 @@ macro_rules! alt {
     ($input:ident => $($p:ident)|+) => {
         loop {
             let mut error : Option<Error> = None;
+            let mut idents = vec![];
             $(
                 match $p($input.clone()) {
                     Ok((v, i)) => {
                         break Ok((v, i));
                     },
-                    Err(e) => { error = Some(e); },
+                    Err(e) => { 
+                        idents.push(stringify!($p));
+                        error = Some(e); 
+                    },
                 };
             )+
-            break Err(error.unwrap().augment("alt failed all parses".to_owned()));
+            let error = Error::new(error.unwrap().span(), format!("alt failed all parses: {}", idents.join(", ")));
+            break Err(error);
         }
     };
 }
