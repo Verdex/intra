@@ -54,6 +54,7 @@ impl Execute {
     pub fn trees(self) -> Vec<TokenTree> { self.0 }
 }
 
+#[derive(Clone)]
 pub struct Pattern(Vec<TokenTree>);
 
 impl Pattern {
