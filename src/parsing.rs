@@ -174,7 +174,7 @@ fn parse_pattern_bracket<'a>( input : Input<'a> ) -> ParseResult<'a, Pattern> {
 }
 
 fn parse_pattern_element<'a>( input : Input<'a> ) -> ParseResult<'a, (Option<IntraIdent>, Pattern, Vec<IntraIdent<'a>>)> {
-    let maybe_ident = maybe(parse_ident);
+    let maybe_ident = maybe(parse_pre_map);
 
     seq!( input => m_ident <= maybe_ident, pattern <= parse_pattern_bracket, idents <= parse_ident_list => {
         (m_ident, pattern, idents)
