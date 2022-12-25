@@ -27,8 +27,7 @@ fn gen_compile_error(error : Error) -> TokenStream {
 pub fn atom( input : TokenStream ) -> TokenStream {
     let input = input.into_iter().collect::<Vec<_>>();
 
-    // TODO is there an empty span or pre-span or something
-    let atom = parse_atom(Input::new(&input, input[0].span()));
+    let atom = parse_atom(Input::new(&input, Span::call_site()));
 
     match atom {
         Ok((v, _)) => { // TODO make sure entire input is consumed

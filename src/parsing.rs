@@ -239,9 +239,9 @@ fn parse_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec
         })
     }
     let list = zero_or_more(parse_execute_or_pattern_semicolon);
-    seq!( input => xs <= list, x <= parse_execute_or_pattern => {
-        let mut xs = xs;
-        xs.push(x);
+    seq!( input => execute_or_pattern_list <= list, tail_execute_or_pattern <= parse_execute_or_pattern => {
+        let mut xs = execute_or_pattern_list;
+        xs.push(tail_execute_or_pattern);
         xs
     })
 }
