@@ -3,28 +3,22 @@ use proc_macro::*;
 
 use crate::data::*;
 
-macro_rules! tree_to_string {
-    ($x:expr) => {
-        $x.trees().into_iter().map(|x| x.to_string()).collect::<Vec<_>>().join("")
-    };
-}
-
 fn use_pre_map(map : Option<IntraIdent>, ident : String) -> String {
     match map {
-        Some(map) => format!( "{}({})", tree_to_string!(map), ident ),
+        Some(map) => format!( "{}({})", map.code(), ident ),
         None => ident,
     }
 }
 
 pub fn gen_atom( input : Atom ) -> TokenStream {
-    let init = tree_to_string!(input.init);
+    let init = input.init.code();
     let mut elements = input.seq;
-    let resolve = tree_to_string!(input.resolve);
+    let resolve = input.resolve.code();
 
     let mut previous = std::iter::once(vec![init])
         .chain(elements.iter()
                        .flat_map(|x| match x { AtomElement::Pattern { next, .. } => vec![next], _ => vec![] })
-                       .map(|x| x.clone().into_iter().map(|y| tree_to_string!(y)).collect::<Vec<_>>())
+                       .map(|x| x.clone().into_iter().map(|y| y.code()).collect::<Vec<_>>())
               )
         .collect::<Vec<_>>();
     previous.pop();
@@ -33,7 +27,7 @@ pub fn gen_atom( input : Atom ) -> TokenStream {
 
     while elements.len() != 0 {
         match elements.pop().unwrap() {
-            AtomElement::Execute(e) => { code = format!("{}\n{}", tree_to_string!(e), code) },
+            AtomElement::Execute(e) => { code = format!("{}\n{}", e.code(), code) },
             AtomElement::Pattern { pre_map, pattern, .. } => {
                 code = previous.pop().unwrap().into_iter().map(|ident| {
                     format!("match {ident} {{
@@ -42,7 +36,7 @@ pub fn gen_atom( input : Atom ) -> TokenStream {
                         }},
                         _ => {{ }},
                     }}", ident = use_pre_map(pre_map.clone(), ident)
-                       , pattern = tree_to_string!(pattern.clone()) 
+                       , pattern = pattern.clone().code() 
                        , prev = code )
                 } ).collect::<Vec<_>>().join("\n");
             },

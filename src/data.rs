@@ -36,30 +36,30 @@ impl Error {
 }
 
 #[derive(Clone)]
-pub struct IntraIdent(Vec<TokenTree>);
+pub struct IntraIdent(String);
 
 impl IntraIdent {
-    pub fn new(input : Vec<TokenTree>) -> Self {
+    pub fn new(input : String) -> Self {
         IntraIdent(input)
     }
-    pub fn trees(self) -> Vec<TokenTree> {
+    pub fn code(self) -> String {
         self.0
     }
 }
 
-pub struct Execute(Vec<TokenTree>);
+pub struct Execute(String);
 
 impl Execute {
-    pub fn new(input : Vec<TokenTree>) -> Self { Execute(input) }
-    pub fn trees(self) -> Vec<TokenTree> { self.0 }
+    pub fn new(input : String) -> Self { Execute(input) }
+    pub fn code(self) -> String { self.0 }
 }
 
 #[derive(Clone)]
-pub struct Pattern(Vec<TokenTree>);
+pub struct Pattern(String);
 
 impl Pattern {
-    pub fn new(input : Vec<TokenTree>) -> Self { Pattern(input) }
-    pub fn trees(self) -> Vec<TokenTree> { self.0 }
+    pub fn new(input : String) -> Self { Pattern(input) }
+    pub fn code(self) -> String { self.0 }
 }
 
 pub enum AtomElement {

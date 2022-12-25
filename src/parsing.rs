@@ -168,7 +168,7 @@ fn parse_pre_map<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent> {
 fn parse_pattern_bracket<'a>( input : Input<'a> ) -> ParseResult<'a, Pattern> {
     match input.input() {
         [TokenTree::Group(g), rest @ ..] if g.delimiter() == Delimiter::Bracket
-            => Ok((Pattern::new(g.stream().into_iter().collect()), Input::new(rest, g.span()))),
+            => Ok((Pattern::new(g.stream().to_string()), Input::new(rest, g.span()))),
         [x, ..] => Err(Error::new(x.span(), "expected '{ <Group> }'".to_owned())),
         [] => input.end_of_stream(),
     }
@@ -185,7 +185,7 @@ fn parse_pattern_element<'a>( input : Input<'a> ) -> ParseResult<'a, (Option<Int
 fn parse_execute<'a>( input : Input<'a> ) -> ParseResult<'a, Execute> {
     match input.input() {
         [TokenTree::Group(g), rest @ ..] if g.delimiter() == Delimiter::Brace 
-            => Ok((Execute::new(g.stream().into_iter().collect()), Input::new(rest, g.span()))),
+            => Ok((Execute::new(g.stream().to_string()), Input::new(rest, g.span()))),
         [x, ..] => Err(Error::new(x.span(), "expected '{ <Group> }'".to_owned())),
         [] => input.end_of_stream(),
     }
@@ -220,9 +220,9 @@ fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent> {
         match maybe_cc {
             Some(mut cc) => { 
                 cc.append(&mut tails);
-                IntraIdent::new(cc.into_iter().map(|x| x.clone()).collect())
+                IntraIdent::new(cc.into_iter().map(|x| x.to_string()).collect())
             },
-            None => { IntraIdent::new(tails.into_iter().map(|x| x.clone()).collect()) },
+            None => { IntraIdent::new(tails.into_iter().map(|x| x.to_string()).collect()) },
         }
     })
 }
