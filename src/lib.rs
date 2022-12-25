@@ -30,8 +30,13 @@ pub fn atom( input : TokenStream ) -> TokenStream {
     let atom = parse_atom(Input::new(&input, Span::call_site()));
 
     match atom {
-        Ok((v, _)) => { // TODO make sure entire input is consumed
-            gen_atom(v)
+        Ok((v, input)) => { 
+            if let [] = input.input() {
+                gen_atom(v)
+            }
+            else {
+                gen_compile_error(input.left_over())
+            }
         },
         Err(e) => {
             gen_compile_error(e)

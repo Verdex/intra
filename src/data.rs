@@ -14,6 +14,9 @@ impl<'a> Input<'a> {
     pub fn end_of_stream<T>(self) -> Result<T, Error> {
         Err(Error::new(self.1, "unexpected end of stream".to_owned()))
     }
+    pub fn left_over(self) -> Error {
+        Error::new(self.0.iter().last().unwrap().span(), "entire input was not consumed".to_owned())
+    }
 }
 
 #[derive(Debug)]
