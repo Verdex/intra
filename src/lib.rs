@@ -44,3 +44,18 @@ pub fn atom( input : TokenStream ) -> TokenStream {
     }
 }
 
+#[proc_macro]
+pub fn seq( input : TokenStream ) -> TokenStream {
+    let input = input.into_iter().collect::<Vec<_>>();
+
+    let seq = parse_seq(Input::new(&input, Span::call_site()));
+
+    match seq {
+        Ok((v, input)) => {
+            "".parse().unwrap()
+        },
+        Err(e) => {
+            gen_compile_error(e)
+        }
+    }
+}
