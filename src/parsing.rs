@@ -169,7 +169,7 @@ fn parse_pattern_bracket<'a>( input : Input<'a> ) -> ParseResult<'a, Pattern> {
     match input.input() {
         [TokenTree::Group(g), rest @ ..] if g.delimiter() == Delimiter::Bracket
             => Ok((Pattern::new(g.stream().to_string()), Input::new(rest, g.span()))),
-        [x, ..] => Err(Error::new(x.span(), "expected '{ <Group> }'".to_owned())),
+        [x, ..] => Err(Error::new(x.span(), "expected '[ <Group> ]'".to_owned())),
         [] => input.end_of_stream(),
     }
 }
