@@ -84,6 +84,8 @@ pub enum SeqElement {
 pub enum RegexModifier {
     Star, 
     Question,
+    StartAnchor,
+    EndAnchor,
     Range(Option<usize>, Option<usize>),
 }
 

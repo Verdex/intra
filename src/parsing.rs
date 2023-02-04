@@ -95,6 +95,22 @@ fn parse_app<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     }
 }
 
+fn parse_end_anchor<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
+    match input.input() {
+        [TokenTree::Punct(p), rest @ ..] if p.as_char() == '$' => Ok((RegexModifier::EndAnchor, Input::new(rest, p.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected '$'".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
+fn parse_start_anchor<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
+    match input.input() {
+        [TokenTree::Punct(p), rest @ ..] if p.as_char() == '^' => Ok((RegexModifier::StartAnchor, Input::new(rest, p.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected '^'".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
 fn parse_question<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
     match input.input() {
         [TokenTree::Punct(p), rest @ ..] if p.as_char() == '?' => Ok((RegexModifier::Question, Input::new(rest, p.span()))),
@@ -136,7 +152,7 @@ fn parse_range<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
 }
 
 fn parse_regex_modifier<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
-    alt!(input => parse_range | parse_star | parse_question)
+    alt!(input => parse_range | parse_star | parse_question | parse_start_anchor | parse_end_anchor)
 }
 
 fn parse_semicolon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
