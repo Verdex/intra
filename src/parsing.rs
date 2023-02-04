@@ -231,6 +231,15 @@ fn parse_pattern_bracket<'a>( input : Input<'a> ) -> ParseResult<'a, Pattern> {
     }
 }
 
+fn parse_pattern_element_with_regex_modifier<'a>( input : Input<'a> ) -> ParseResult<'a, (Option<IntraIdent>, Pattern, Option<RegexModifier>)> {
+    let maybe_ident = maybe(parse_pre_map);
+    let maybe_regex_modifier = maybe(parse_regex_modifier);
+
+    seq!( input => m_ident <= maybe_ident, pattern <= parse_pattern_bracket, m_regex <= maybe_regex_modifier => {
+        (m_ident, pattern, m_regex)
+    })
+}
+
 fn parse_pattern_element_with_next<'a>( input : Input<'a> ) -> ParseResult<'a, (Option<IntraIdent>, Pattern, Vec<IntraIdent>)> {
     let maybe_ident = maybe(parse_pre_map);
 
@@ -303,6 +312,25 @@ fn parse_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec
     })
 }
 
+fn parse_seq_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<SeqElement>> {
+    fn parse_execute_or_pattern<'a>( input : Input<'a> ) -> ParseResult<'a, SeqElement> {
+        let pattern = map(parse_pattern_element_with_regex_modifier, |(pre_map, pattern, modifier)| SeqElement::Pattern { pre_map, pattern, modifier });
+        let execute = map(parse_execute, |x| SeqElement::Execute(x));
+        alt!( input => pattern | execute )
+    } 
+    fn parse_execute_or_pattern_semicolon<'a>( input : Input<'a> ) -> ParseResult<'a, SeqElement> {
+        seq!( input => execute_or_pattern <= parse_execute_or_pattern, _semicolon <= parse_semicolon => {
+            execute_or_pattern
+        })
+    }
+    let list = zero_or_more(parse_execute_or_pattern_semicolon);
+    seq!( input => execute_or_pattern_list <= list, tail_execute_or_pattern <= parse_execute_or_pattern => {
+        let mut xs = execute_or_pattern_list;
+        xs.push(tail_execute_or_pattern);
+        xs
+    })
+}
+
 pub fn parse_atom<'a>( input : Input<'a> ) -> ParseResult<'a, Atom> {
     seq!( input => init <= parse_ident
                  , _arrow_1 <= parse_arrow
@@ -311,4 +339,14 @@ pub fn parse_atom<'a>( input : Input<'a> ) -> ParseResult<'a, Atom> {
                  , resolve <= parse_execute
                  => 
                  { Atom { init, seq, resolve } })
+}
+
+pub fn parse_seq<'a>( input : Input<'a> ) -> ParseResult<'a, Seq> {
+    seq!( input => init <= parse_ident
+                , _arrow_1 <= parse_arrow
+                , seq <= parse_seq_execute_or_pattern_list
+                , _arrow_2 <= parse_arrow
+                , resolve <= parse_execute
+                =>
+                { Seq { init, seq, resolve }})
 }
