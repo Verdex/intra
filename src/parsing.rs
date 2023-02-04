@@ -174,7 +174,7 @@ fn parse_pattern_bracket<'a>( input : Input<'a> ) -> ParseResult<'a, Pattern> {
     }
 }
 
-fn parse_pattern_element<'a>( input : Input<'a> ) -> ParseResult<'a, (Option<IntraIdent>, Pattern, Vec<IntraIdent>)> {
+fn parse_pattern_element_with_next<'a>( input : Input<'a> ) -> ParseResult<'a, (Option<IntraIdent>, Pattern, Vec<IntraIdent>)> {
     let maybe_ident = maybe(parse_pre_map);
 
     seq!( input => m_ident <= maybe_ident, pattern <= parse_pattern_bracket, idents <= parse_ident_list => {
@@ -229,7 +229,7 @@ fn parse_ident<'a>( input : Input<'a> ) -> ParseResult<'a, IntraIdent> {
 
 fn parse_execute_or_pattern_list<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<AtomElement>> {
     fn parse_execute_or_pattern<'a>( input : Input<'a> ) -> ParseResult<'a, AtomElement> {
-        let pattern = map(parse_pattern_element, |(pre_map, pattern, next)| AtomElement::Pattern { pre_map, pattern, next });
+        let pattern = map(parse_pattern_element_with_next, |(pre_map, pattern, next)| AtomElement::Pattern { pre_map, pattern, next });
         let execute = map(parse_execute, |x| AtomElement::Execute(x));
         alt!( input => pattern | execute )
     } 
