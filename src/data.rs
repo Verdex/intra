@@ -75,3 +75,20 @@ pub struct Atom {
     pub seq : Vec<AtomElement>,
     pub resolve : Execute,
 }
+
+pub enum SeqElement {
+    Execute(Execute),
+    Pattern { pre_map : Option<IntraIdent>, pattern : Pattern, modifier : Option<RegexModifier> },
+}
+
+pub enum RegexModifier {
+    Star, 
+    Question,
+    Range(Option<usize>, Option<usize>),
+}
+
+pub struct Seq {
+    pub init : IntraIdent,
+    pub seq : Vec<SeqElement>,
+    pub resolve : Execute,
+}
