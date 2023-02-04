@@ -74,6 +74,19 @@ fn parse_arrow<'a>( input : Input<'a> ) -> ParseResult<'a, Vec<&'a TokenTree>> {
     })
 }
 
+fn parse_digits<'a>( input : Input<'a> ) -> ParseResult<'a, usize> {
+    match input.input() {
+        [p @ TokenTree::Literal(lit), rest @ ..] => {
+            match lit.to_string().parse::<usize>() {
+                Ok(v) => Ok((v, Input::new(rest, p.span()))),
+                Err(_) => Err(Error::new(p.span(), "expected '<digits>'".to_owned())),
+            }
+        }
+        [x, ..] => Err(Error::new(x.span(), "expected '<digits>'".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
 fn parse_app<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     match input.input() {
         [x @ TokenTree::Punct(p), rest @ ..] if p.as_char() == '$' => Ok((x, Input::new(rest, p.span()))),
