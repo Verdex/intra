@@ -45,3 +45,31 @@ pub fn gen_atom( input : Atom ) -> TokenStream {
 
     code.parse().unwrap()
 }
+
+/*pub fn gen_seq( input : Seq ) -> TokenStream {
+    let init = input.init.code();
+    let mut elements = input.seq;
+    let resolve = input.resolve.code();
+
+    let mut code = resolve; 
+
+    while elements.len() != 0 {
+        match elements.pop().unwrap() {
+            SeqElement::Execute(e) => { code = format!("{}\n{}", e.code(), code) },
+            SeqElement::Pattern { pre_map, pattern, .. } => {
+                code = previous.pop().unwrap().into_iter().map(|ident| {
+                    format!("match {ident} {{
+                        {pattern} => {{
+                            {prev}
+                        }},
+                        _ => {{ }},
+                    }}", ident = use_pre_map(pre_map.clone(), ident)
+                       , pattern = pattern.clone().code() 
+                       , prev = code )
+                } ).collect::<Vec<_>>().join("\n");
+            },
+        }
+    }
+
+    code.parse().unwrap()
+}*/
