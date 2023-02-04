@@ -95,6 +95,50 @@ fn parse_app<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     }
 }
 
+fn parse_question<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
+    match input.input() {
+        [TokenTree::Punct(p), rest @ ..] if p.as_char() == '?' => Ok((RegexModifier::Question, Input::new(rest, p.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected '?'".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
+fn parse_star<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
+    match input.input() {
+        [TokenTree::Punct(p), rest @ ..] if p.as_char() == '*' => Ok((RegexModifier::Star, Input::new(rest, p.span()))),
+        [x, ..] => Err(Error::new(x.span(), "expected '*'".to_owned())),
+        [] => input.end_of_stream(), 
+    }
+}
+
+fn parse_range<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
+    fn parse_whole<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
+        seq!( input => start <= parse_digits
+                     , _comma <= parse_comma
+                     , end <= parse_digits
+                     => { RegexModifier::Range(Some(start), Some(end)) }
+                     )
+    }
+    fn parse_start<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
+        seq!( input => start <= parse_digits
+                     , _comma <= parse_comma
+                     => { RegexModifier::Range(Some(start), None) }
+                     )
+    }
+    fn parse_end<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
+        seq!( input => _comma <= parse_comma
+                     , end <= parse_digits
+                     => { RegexModifier::Range(None, Some(end)) }
+                     )
+    }
+
+    alt!(input => parse_whole | parse_start | parse_end)
+}
+
+fn parse_regex_modifier<'a>( input : Input<'a> ) -> ParseResult<'a, RegexModifier> {
+    alt!(input => parse_range | parse_star | parse_question)
+}
+
 fn parse_semicolon<'a>( input : Input<'a> ) -> ParseResult<'a, &'a TokenTree> {
     match input.input() { 
         [t @ TokenTree::Punct(p), rest @ ..] if p.as_char() == ';' => Ok((t, Input::new(rest, p.span()))),
